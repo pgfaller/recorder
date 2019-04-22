@@ -1,0 +1,4 @@
+recordings.db
+venv
+*.pyc
+*.sock

@@ -1,0 +1,13 @@
+[Unit]
+Description=Temperature and Humidity recorder
+
+[Service]
+User=pi
+Group=pi
+Type=simple
+WorkingDirectory=/home/pi/recorder
+ExecStart=/usr/bin/python recorder.py 22 18 900
+Restart=on-failure
+
+[Install]
+WantedBy=multiuser.target

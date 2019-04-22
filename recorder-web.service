@@ -1,0 +1,16 @@
+#Metadata and dependencies section
+[Unit]
+Description=Recorder Web View service
+After=network.target
+
+#Define users and app working directory
+[Service]
+User=pi
+Group=www-data
+WorkingDirectory=/home/pi/recorder
+Environment="PATH=/home/pi/recorder/venv/bin"
+ExecStart=/home/pi/recorder/venv/bin/uwsgi --ini recorder-web.ini
+
+#Link the service to start on multi-user system up
+[Install]
+WantedBy=multi-user.target
