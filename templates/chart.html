@@ -1,11 +1,12 @@
 <meta charset="utf-8" />
-<title>Chart.js</title>
+<title>Indoor Temperature and Humidity</title>
 <!-- import plugin script -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
-<h1>Flask Chart.js</h1>
-<!-- bar chart canvas element -->
-<canvas id="chart" width="1200" height="800"></canvas>
+<h1>Temperature and Humidity</h1>
+<div class="chart-container" style="position: relative; height:50vh; width:90vw">
+  <canvas id="chart"></canvas>
+</div>
 <script>
   // bar chart data
   var cfg = {
@@ -49,7 +50,6 @@
       ]
     },
     options: {
-      responsive: false,
       scales: {
         xAxes: [{
           type: 'time',

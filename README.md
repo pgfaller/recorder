@@ -98,3 +98,5 @@ Test with:
 peter@neptune:pgfaller.github.io$ curl http://mercury:8080
 It Works!
 ```
+
+Chart docs: https://www.chartjs.org/docs/latest/
