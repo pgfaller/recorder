@@ -5,7 +5,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
 <h1>Flask Chart.js</h1>
 <!-- bar chart canvas element -->
-<canvas id="chart" width="600" height="400"></canvas>
+<canvas id="chart" width="1200" height="800"></canvas>
 <script>
   // bar chart data
   var cfg = {
@@ -49,6 +49,7 @@
       ]
     },
     options: {
+      responsive: false,
       scales: {
         xAxes: [{
           type: 'time',
@@ -111,30 +112,6 @@
     }
   };
   // get bar chart canvas
-  var mychart = document.getElementById("chart").getContext("2d");
-  steps = 10;
-  max = 100;
-  // draw bar chart
-  // new Chart(mychart).Bar(barData, {
-  //   scaleOverride: true,
-  //   scaleSteps: steps,
-  //   scaleStepWidth: Math.ceil(max / steps),
-  //   scaleStartValue: 0,
-  //   scaleShowVerticalLines: true,
-  //   scaleShowGridLines: true,
-  //   barShowStroke: true,
-  //   scaleShowLabels: true
-  // });
-  // new Chart(mychart).Line(barData, {
-  //   scaleOverride: true,
-  //   scaleSteps: steps,
-  //   scaleStepWidth: Math.ceil(max / steps),
-  //   scaleStartValue: 0,
-  //   scaleShowVerticalLines: true,
-  //   scaleShowGridLines : true,
-  //   barShowStroke : true,
-  //   scaleShowLabels: true,
-  //   bezierCurve: false
-  // });
+  var mychart = document.getElementById("chart"); //.getContext("2d");
   var chart = new Chart(mychart, cfg);
 </script>
