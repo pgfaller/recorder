@@ -6,10 +6,13 @@
 import sqlite3
 from sqlite3 import Error
 import sys
+import os
 import Adafruit_DHT
 import time
 import signal
- 
+import requests
+
+
 def create_connection(db_file):
     """ create a database connection to the SQLite database
         specified by db_file
@@ -22,8 +25,9 @@ def create_connection(db_file):
         return conn
     except Error as e:
         print('Unable to connect', e)
- 
+
     return None
+
 
 def create_temp_humidity_table(cursor):
     """ Create the table to hold temperature and humidity readings
@@ -39,6 +43,7 @@ def create_temp_humidity_table(cursor):
         print('Table created')
     except Error as e:
         print('Unable to create table', e)
+
 
 def store_temp_humidity(cursor, now, temperature, humidity):
     """ Store a single temperature and humidity reading
@@ -57,24 +62,40 @@ def store_temp_humidity(cursor, now, temperature, humidity):
     except Error as e:
         print(e)
 
+
+def send_recording(url, now, temperature, humidity):
+    try:
+        recording = {}
+        recording['timestamp'] = now
+        recording['temperature'] = temperature
+        recording['humidity'] = humidity
+        r = requests.post(url, json=recording)
+        print(r.status_code, r.reason)
+    except Error as e:
+        print(e)
+
+
 def signal_handler(sig, frame):
     print('Exiting on signal', sig)
     conn.close
     sys.exit(0)
 
+
 if __name__ == '__main__':
     try:
         # Parse command line parameters.
-        sensor_args = { '11': Adafruit_DHT.DHT11,
-                        '22': Adafruit_DHT.DHT22,
-                        '2302': Adafruit_DHT.AM2302 }
+        sensor_args = {'11': Adafruit_DHT.DHT11,
+                       '22': Adafruit_DHT.DHT22,
+                       '2302': Adafruit_DHT.AM2302}
         if len(sys.argv) == 4 and sys.argv[1] in sensor_args:
             sensor = sensor_args[sys.argv[1]]
             pin = sys.argv[2]
             interval = int(sys.argv[3])
         else:
-            print('Usage: sudo ./recorder.py [11|22|2302] <GPIO pin number> <interval>')
-            print('Example: sudo ./recorder.py 22 18 15 - Read from an DHT22 connected to GPIO pin #4')
+            print(
+                'Usage: sudo ./recorder.py [11|22|2302] <GPIO pin number> <interval>')
+            print(
+                'Example: sudo ./recorder.py 22 18 15 - Read from an DHT22 connected to GPIO pin #4')
             sys.exit(1)
 
         # Connect to the database
@@ -83,6 +104,12 @@ if __name__ == '__main__':
         create_temp_humidity_table(cursor)
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
+
+        # Get the Azure URL
+        try:
+            url = os.environ['AZ_URL']
+        except KeyError as ke:
+            url = None
 
         # Periodic readings
         while(True):
@@ -97,9 +124,12 @@ if __name__ == '__main__':
             # If this happens try again!
             if humidity is not None and temperature is not None:
                 now = time.time()
-                print('Time={2:0.1f} Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(temperature, humidity, now))
+                print(
+                    'Time={2:0.1f} Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(temperature, humidity, now))
                 store_temp_humidity(cursor, int(now), temperature, humidity)
                 conn.commit()
+                if url is not None:
+                    send_recording(url, int(now), temperature, humidity)
             else:
                 print('Failed to get reading. Try again!')
             time.sleep(interval)
