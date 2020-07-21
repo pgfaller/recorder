@@ -11,6 +11,7 @@ import Adafruit_DHT
 import time
 import signal
 import requests
+import socket
 
 
 def create_connection(db_file):
@@ -66,6 +67,7 @@ def store_temp_humidity(cursor, now, temperature, humidity):
 def send_recording(url, now, temperature, humidity):
     try:
         recording = {}
+        recording['source'] = socket.gethostname()
         recording['timestamp'] = now
         recording['temperature'] = temperature
         recording['humidity'] = humidity
@@ -109,6 +111,7 @@ if __name__ == '__main__':
         try:
             url = os.environ['AZ_URL']
         except KeyError as ke:
+            print('No AZ_URL found')
             url = None
 
         # Periodic readings
@@ -136,6 +139,6 @@ if __name__ == '__main__':
 
     except Error as e:
         print(e)
-        system.exit(1)
+        exit(1)
     finally:
         conn.close()
