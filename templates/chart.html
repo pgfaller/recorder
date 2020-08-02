@@ -24,7 +24,7 @@
           bezierCurve : false,
           data: [
             {% for rec in recordings %}
-            {% set timestamp, temperature, humidity = rec %}
+            {% set hostname, timestamp, temperature, humidity = rec %}
             { t: new Date({{ timestamp * 1000 }}), y: {{ temperature }} },
             {% endfor %}
           ],
@@ -41,7 +41,7 @@
           bezierCurve : false,
           data: [
             {% for rec in recordings %}
-            {% set timestamp, temperature, humidity = rec %}
+            {% set hostname, timestamp, temperature, humidity = rec %}
             { t: new Date({{ timestamp * 1000 }}), y: {{ humidity }} },
             {% endfor %}
           ],

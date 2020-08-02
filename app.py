@@ -4,9 +4,11 @@ from flask import (
     Flask,
     g,
     jsonify,
+    request,
     render_template
 )
 import json
+import socket
 
 app = Flask(__name__, static_url_path='')
 
@@ -21,15 +23,28 @@ def get_db():
     return db
 
 
-def get_data(limit):
+def get_data(hostname, limit):
     """ Retrieve readings from SQLite database """
-    sql_text = """ SELECT timestamp, temperature, humidity
-        FROM temperature_humidity order by timestamp desc limit(?)
+    sql_text = """ SELECT hostname, timestamp, temperature, humidity
+        FROM temperature_humidity
+        WHERE hostname=?
+        ORDER BY timestamp DESC LIMIT(?)
     """
     db = get_db()
-    data = db.execute(sql_text, (str(limit),)).fetchall()
+    data = db.execute(sql_text, (hostname, str(limit),)).fetchall()
     return data
 
+
+def put_data(hostname, timestamp, temperature, humidity):
+    """ Insert a reading into the SQLite database """
+    sql_text = """ INSERT INTO temperature_humidity (hostname, timestamp, temperature, humidity)
+        VALUES(?, ?, ?, ?) 
+    """
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(sql_text, (hostname, timestamp, temperature, humidity,))
+    db.commit()
+    return cur.lastrowid
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -44,17 +59,32 @@ def root():
 
 
 @app.route("/data")
-@app.route("/data/<int:limit>")
-def data(limit=50):
-    data = get_data(limit)
+def data():
+    limit = request.args.get('limit', default = 50, type = int)
+    hostname = request.args.get('hostname', default = socket.gethostname(), type = str)
+    data = get_data(hostname, limit)
     return json.dumps([tuple(row) for row in data])
 
 
 @app.route("/chart")
-@app.route("/chart/<int:limit>")
-def chart(limit=50):
-    data = get_data(limit)
+def chart():
+    limit = request.args.get('limit', default = 50, type = int)
+    hostname = request.args.get('hostname', default = socket.gethostname(), type = str)
+    hostname = socket.gethostname()
+    data = get_data(hostname, limit)
     return render_template('chart.html', recordings=data)
+
+
+@app.route("/insert", methods=['POST'])
+def insert():
+    record = request.get_json(force=True)
+    hostname = record['hostname']
+    timestamp = record['timestamp']
+    temperature = record['temperature']
+    humidity = record['humidity']
+    rowid = put_data(hostname, timestamp, temperature, humidity)
+    record['rowid'] = rowid
+    return json.dumps(record)
 
 
 if __name__ == "__main__":

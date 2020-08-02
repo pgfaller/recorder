@@ -54,10 +54,10 @@ def store_temp_humidity(cursor, now, temperature, humidity):
     :param humidity: humidity reading
     :return: ID of last insert
     """
-    sql_text = """ INSERT INTO temperature_humidity (timestamp, temperature, humidity)
-                   VALUES(?,?,?) """
+    sql_text = """ INSERT INTO temperature_humidity (hostname, timestamp, temperature, humidity)
+                   VALUES(?,?,?,?) """
     try:
-        cursor.execute(sql_text, (now, temperature, humidity))
+        cursor.execute(sql_text, (socket.gethostname(), now, temperature, humidity))
         print('Record inserted', cursor.lastrowid)
         return cursor.lastrowid
     except Error as e:
@@ -67,7 +67,7 @@ def store_temp_humidity(cursor, now, temperature, humidity):
 def send_recording(url, now, temperature, humidity):
     try:
         recording = {}
-        recording['source'] = socket.gethostname()
+        recording['hostname'] = socket.gethostname()
         recording['timestamp'] = now
         recording['temperature'] = temperature
         recording['humidity'] = humidity
