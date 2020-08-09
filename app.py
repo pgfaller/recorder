@@ -9,6 +9,11 @@ from flask import (
 )
 import json
 import socket
+import io
+import base64
+import pandas as pd
+from matplotlib.figure import Figure     
+from matplotlib import pyplot as plt                 
 
 app = Flask(__name__, static_url_path='')
 
@@ -70,9 +75,42 @@ def data():
 def chart():
     limit = request.args.get('limit', default = 50, type = int)
     hostname = request.args.get('hostname', default = socket.gethostname(), type = str)
-    hostname = socket.gethostname()
     data = get_data(hostname, limit)
-    return render_template('chart.html', recordings=data)
+
+    db = get_db()
+    query_template = """
+        SELECT timestamp, temperature, humidity
+        FROM temperature_humidity
+        WHERE hostname='{}'
+        ORDER BY timestamp DESC LIMIT({})
+        """
+    query = query_template.format(hostname, limit)
+    recordings = pd.read_sql_query(query, db)
+    recordings['timestamp'] = pd.to_datetime(recordings['timestamp'],unit='s')
+    plot_df = recordings.set_index('timestamp')
+
+    fig, axes = plt.subplots(nrows=2, ncols=1, sharex=True)
+    plt.subplots_adjust(wspace=1.0, hspace=0.5)
+
+    plot_df['temperature'].plot(ax=axes[0], style='c-')
+    axes[0].set_title('Temperature')
+    axes[0].grid(b=True, which='major', color='#666666', linestyle='-')
+    axes[0].grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+
+    plot_df['humidity'].plot(ax=axes[1], style='g-')
+    axes[1].set_title('Humidity')
+    axes[1].grid(b=True, which='major', color='#666666', linestyle='-')
+    axes[1].grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    plt.close(fig)
+    buf.seek(0)
+    buffer = b''.join(buf)
+    b2 = base64.b64encode(buffer)
+    plot_data=b2.decode('utf-8')
+
+    return render_template('chart.html', recordings=data, plot_data=plot_data)
 
 
 @app.route("/insert", methods=['POST'])
