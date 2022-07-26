@@ -12,6 +12,7 @@ import time
 import signal
 import requests
 import socket
+from prometheus_client import start_http_server, Gauge
 
 
 def create_connection(db_file):
@@ -114,6 +115,11 @@ if __name__ == '__main__':
             print('No AZ_URL found')
             url = None
 
+        # Define Prometheus metrics
+        temperature_gauge = Gauge('environment_temperature', 'Measured temperature');
+        humidity_gauge = Gauge('environment_humidity', 'Measured humidity');
+        start_http_server(8000);
+        
         # Periodic readings
         while(True):
             # Try to grab a sensor reading.  Use the read_retry method which will retry up
@@ -133,6 +139,8 @@ if __name__ == '__main__':
                 conn.commit()
                 if url is not None:
                     send_recording(url, int(now), temperature, humidity)
+                temperature_gauge.set(temperature);
+                humidity_gauge.set(humidity);
             else:
                 print('Failed to get reading. Try again!')
             time.sleep(interval)
