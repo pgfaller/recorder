@@ -2,3 +2,5 @@
 recordings.db
 *.pyc
 *.sock
+recvenv
+webvenv

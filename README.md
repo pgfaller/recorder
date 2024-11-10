@@ -6,13 +6,16 @@ Install required modules via _pip_
 
 ```
 pi@mercury:~/recorder $ sudo apt-get update
-pi@mercury:~/recorder $ sudo apt-get install python-pip
+pi@mercury:~/recorder $ sudo apt-get install python3-full
+pi@mercury:~/recorder $ python3 -m venv recvenv
+pi@mercury:~/recorder $ source ./recvenv/bin/activate
 pi@mercury:~/recorder $ sudo pip install Adafruit_DHT
+pi@mercury:~/recorder $ sudo pip install requests
 ```
 
 - Create the files:
-  -- recorder.py: The main python script that polls the DHT22 and stores results in SQLite3
-  -- recorder.service: The systemd unit file to run the recorder
+  - recorder.py: The main python script that polls the DHT22 and stores results in SQLite3
+  - recorder.service: The systemd unit file to run the recorder
 - Install and enable the service:
 
 ```
@@ -20,6 +23,20 @@ pi@mercury:~/recorder $ sudo cp recorder.service /etc/systemd/system/
 pi@mercury:~/recorder $ systemctl start recorder
 pi@mercury:~/recorder $ sudo systemctl enable recorder
 ```
+
+## Simple Web Data Retrieval setup
+pi@mercury:~/recorder $ virtualenv webvenv
+pi@mercury:~/recorder $ source webvenv/bin/activate
+(venv) pi@mercury:~/recorder $ python3 simpleweb.py
+
+```
+$ curl mercury:8000
+[[]]
+```
+
+pi@mercury:~/recorder $ sudo cp recorder-web.service /etc/systemd/system/
+pi@mercury:~/recorder $ systemctl start recorder-web
+pi@mercury:~/recorder $ sudo systemctl enable recorder-web
 
 ## Web view setup
 
@@ -34,14 +51,7 @@ New python executable in /home/pi/recorder/venv/bin/python
 Installing setuptools, pip, wheel...
 done.
 pi@mercury:~/recorder $ source venv/bin/activate
-(venv) pi@mercury:~/recorder $ pip install flask uwsgi
-DEPRECATION: Python 2.7 will reach the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 won't be maintained after that date. A future version of pip will drop support for Python 2.7.
-Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple
-Collecting flask
-...
-Successfully built uwsgi MarkupSafe
-Installing collected packages: click, Werkzeug, itsdangerous, MarkupSafe, Jinja2, flask, uwsgi
-Successfully installed Jinja2-2.10.1 MarkupSafe-1.1.1 Werkzeug-0.15.2 click-7.0 flask-1.0.2 itsdangerous-1.1.0 uwsgi-2.0.18
+(venv) pi@mercury:~/recorder $ pip install flask uwsgi pandas matplotlib
 (venv) pi@mercury:~/recorder $ vi app.py
 (venv) pi@mercury:~/recorder $ python app.py
  * Serving Flask app "app" (lazy loading)

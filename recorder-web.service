@@ -6,10 +6,9 @@ After=network.target
 #Define users and app working directory
 [Service]
 User=pi
-Group=www-data
+Group=pi
 WorkingDirectory=/home/pi/recorder
-Environment="PATH=/home/pi/recorder/venv/bin"
-ExecStart=/home/pi/recorder/venv/bin/uwsgi --ini recorder-web.ini
+ExecStart=/home/pi/recorder/webvenv/bin/python simpleweb.py
 
 #Link the service to start on multi-user system up
 [Install]

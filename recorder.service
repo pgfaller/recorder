@@ -5,9 +5,9 @@ Description=Temperature and Humidity recorder
 User=pi
 Group=pi
 Type=simple
-Environment="AZ_URL=http://localhost:7071/api/RecordOneReading"
+#Environment="AZ_URL=http://localhost:7071/api/RecordOneReading"
 WorkingDirectory=/home/pi/recorder
-ExecStart=/usr/bin/python recorder.py 22 18 900
+ExecStart=/home/pi/recorder/recvenv/bin/python recorder.py 22 18 900
 Restart=on-failure
 
 [Install]
