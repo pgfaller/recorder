@@ -11,4 +11,4 @@ ExecStart=/home/pi/recorder/recvenv/bin/python recorder.py 22 18 900
 Restart=on-failure
 
 [Install]
-WantedBy=multiuser.target
+WantedBy=multi-user.target
