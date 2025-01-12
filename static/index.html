@@ -1,63 +1,115 @@
 <!DOCTYPE html>
 <html>
-  <head lang="en">
-    <meta charset="UTF-8" />
-    <title>Indoor Temperature and Humidity Recordings</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- styles -->
-  </head>
-  <body>
-    <div class="container">
-      <h1>Indoor Temperature and Humidity Recordings</h1>
-      <br />
-      <div id="content"></div>
+
+<head lang="en">
+  <meta charset="UTF-8" />
+  <title>Indoor Temperature and Humidity Recordings</title>
+  <link rel="shortcut icon" href="favicon.ico" 
+  type="image/x-icon" />  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- styles -->
+  <!-- scripts -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", drawCharts);
+    let range = 192;
+    function drawCharts() {
+      // console.log("Script runninng");
+      let recordings = fetch("http://mercury:8080/data?limit="+range)
+      .then(data => data.json())
+      .then(recordings => {
+          var temperatureContext = document.getElementById('temperatureChart').getContext('2d');
+          var temperature = new Chart(temperatureContext, {
+              type: 'line',
+              labels: [],
+              data: {
+                  datasets: [{
+                  data: recordings.map(rec => {
+                      return {
+                          x: rec[1] * 1000,
+                          y: rec[2]
+                      }
+                  }),
+                  label: "Temperature",
+                  borderColor: "#3e95cd",
+                  fill: false
+                  }]
+              },
+              options: {
+                  scales: {
+                  xAxes: [{
+                      type: 'time',
+                      distribution: 'linear',
+                  }],
+                  title: {
+                      display: false,
+                  }
+                  }
+              }
+          })
+      
+          var humidityContext = document.getElementById('humidityChart').getContext('2d');
+          var humidity = new Chart(humidityContext, {
+              type: 'line',
+              labels: [],
+              data: {
+                  datasets: [{
+                  data: recordings.map(rec => {
+                      return {
+                          x: rec[1] * 1000,
+                          y: rec[3]
+                      }
+                  }),
+                  label: "Humidity",
+                  borderColor: "#953ecd",
+                  fill: false
+                  }]
+              },
+              options: {
+                  scales: {
+                  xAxes: [{
+                      type: 'time',
+                      distribution: 'linear',
+                  }],
+                  title: {
+                      display: false,
+                  }
+                  }
+              }
+          })
+          
+      });
+      //....
+    }
+    function setRange(event) {
+      range = event.target.value
+      drawCharts()
+    }
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Indoor Temperature and Humidity Recordings</h1>
+    <br />
+    <div>
+      <select onchange="setRange(event)">
+        <option value="192" selected>2 Days</option>
+        <option value="1344">Week</option>
+        <option value="2688">Fortnight</option>
+      </select>
     </div>
-    <!-- scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.min.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/react/0.13.3/JSXTransformer.js"></script>
-    <script type="text/jsx">
+    <div id="charts">
+      <div id="temperature-chart">
+        <h2>Temperature</h2>
+        <canvas id="temperatureChart" style="width:100%;max-width:700px"></canvas>
+      </div>
+      <div id="humidity-chart">
+        <h2>Humidity</h2>
+        <canvas id="humidityChart" style="width:100%;max-width:700px"></canvas>
+      </div>
+    </div>
+  </div>
+</body>
 
-      /*** @jsx React.DOM */
-
-      class Recordings extends React.Component {
-        constructor() {
-          super();
-          this.state = {
-            recordings: []
-          };
-        }
-
-        componentDidMount() {
-          fetch(this.props.url)
-          .then(response => response.json())
-          .then(data => this.setState({ recordings: data }));
-        }
-
-        render() {
-          return (
-            <div>
-              <h2>Recent Recordings</h2>
-              <ul>
-                {
-                  this.state.recordings.map(function(recording) {
-                    return <li>
-                      {(new Date(recording[0] * 1000)).toISOString()}:&nbsp;
-                      {recording[1]},&nbsp;
-                      {recording[2]}
-                    </li>
-                  })
-                }
-              </ul>
-            </div>
-          );
-        }
-      }
-
-      ReactDOM.render(
-        <Recordings url={ '/data' } />,
-        document.getElementById('content')
-      );
-    </script>
-  </body>
 </html>

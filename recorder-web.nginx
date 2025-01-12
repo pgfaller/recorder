@@ -1,6 +1,6 @@
 server {
     listen 8080;
-    server_name 192.168.0.25;
+    server_name mercury;
     location / {
         include uwsgi_params;
         uwsgi_pass unix:/home/pi/recorder/recorder-web.sock;

@@ -2,14 +2,13 @@
 [Unit]
 Description=Recorder Web View service
 After=network.target
-
 #Define users and app working directory
 [Service]
 User=pi
-Group=pi
+Group=www-data
 WorkingDirectory=/home/pi/recorder
-ExecStart=/home/pi/recorder/webvenv/bin/python simpleweb.py
-
+Environment="PATH=/home/pi/recorder/webvenv/bin"
+ExecStart=/home/pi/recorder/webvenv/bin/uwsgi --ini recorder-web.ini
 #Link the service to start on multi-user system up
 [Install]
 WantedBy=multi-user.target
