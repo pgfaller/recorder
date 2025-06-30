@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: recorder-web
+  description: See the values
+spec:
+  type: website
+  lifecycle: production
+  owner: tracking-team 
