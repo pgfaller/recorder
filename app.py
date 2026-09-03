@@ -30,13 +30,15 @@ def get_db():
 
 def get_data(hostname, limit):
     """ Retrieve readings from SQLite database """
+    if not isinstance(limit, int) or limit < 1 or limit > 10000:
+        limit = 50
     sql_text = """ SELECT hostname, timestamp, temperature, humidity
         FROM temperature_humidity
         WHERE hostname=?
-        ORDER BY timestamp DESC LIMIT(?)
+        ORDER BY timestamp DESC LIMIT ?
     """
     db = get_db()
-    data = db.execute(sql_text, (hostname, str(limit),)).fetchall()
+    data = db.execute(sql_text, (hostname, limit,)).fetchall()
     return data
 
 
@@ -79,13 +81,23 @@ def data():
 @app.route("/insert", methods=['POST'])
 def insert():
     record = request.get_json(force=True)
-    hostname = record['hostname']
-    timestamp = record['timestamp']
-    temperature = record['temperature']
-    humidity = record['humidity']
+    hostname = record.get('hostname', '')
+    timestamp = record.get('timestamp')
+    temperature = record.get('temperature')
+    humidity = record.get('humidity')
+    
+    if not hostname or not isinstance(hostname, str) or len(hostname) > 64:
+        return jsonify({'error': 'Invalid hostname'}), 400
+    if not isinstance(timestamp, (int, float)) or timestamp < 0:
+        return jsonify({'error': 'Invalid timestamp'}), 400
+    if not isinstance(temperature, (int, float)) or temperature < -50 or temperature > 150:
+        return jsonify({'error': 'Invalid temperature range'}), 400
+    if not isinstance(humidity, (int, float)) or humidity < 0 or humidity > 100:
+        return jsonify({'error': 'Invalid humidity range'}), 400
+    
     rowid = put_data(hostname, timestamp, temperature, humidity)
     record['rowid'] = rowid
-    return json.dumps(record)
+    return jsonify(record), 201
 
 
 if __name__ == "__main__":
