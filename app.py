@@ -11,9 +11,6 @@ import json
 import socket
 import io
 import base64
-#import pandas as pd
-#from matplotlib.figure import Figure     
-#from matplotlib import pyplot as plt                 
 
 app = Flask(__name__, static_url_path='')
 
