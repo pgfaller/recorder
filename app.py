@@ -20,6 +20,22 @@ app = Flask(__name__, static_url_path='')
 DATABASE = 'recordings.db'
 
 
+def init_db():
+    """Initialize database schema if it doesn't exist"""
+    db = sqlite3.connect(DATABASE)
+    cursor = db.cursor()
+    cursor.execute(""" 
+        CREATE TABLE IF NOT EXISTS temperature_humidity (
+            timestamp integer PRIMARY KEY,
+            hostname string(64),
+            temperature numeric,
+            humidity numeric
+        );
+    """)
+    db.commit()
+    db.close()
+
+
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
@@ -52,6 +68,11 @@ def put_data(hostname, timestamp, temperature, humidity):
     cur.execute(sql_text, (hostname, timestamp, temperature, humidity,))
     db.commit()
     return cur.lastrowid
+
+@app.before_request
+def before_request():
+    init_db()
+
 
 @app.teardown_appcontext
 def close_connection(exception):

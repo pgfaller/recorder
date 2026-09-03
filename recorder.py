@@ -75,8 +75,10 @@ def send_recording(url, now, temperature, humidity):
         recording['humidity'] = humidity
         r = requests.post(url, json=recording)
         print(r.status_code, r.reason)
-    except Error as e:
-        print(e)
+    except requests.RequestException as e:
+        print(f'Failed to send recording: {e}')
+    except Exception as e:
+        print(f'Unexpected error sending recording: {e}')
 
 
 def signal_handler(sig, frame):
