@@ -81,7 +81,7 @@ def send_recording(url, now, temperature, humidity):
 
 def signal_handler(sig, frame):
     print('Exiting on signal', sig)
-    conn.close
+    conn.close()
     sys.exit(0)
 
 
