@@ -9,12 +9,14 @@ import traceback
 
 def get_data(hostname, limit):
     """ Retrieve readings from SQLite database """
+    if not isinstance(limit, int) or limit < 1 or limit > 10000:
+        limit = 50
     sql_text = """ SELECT hostname, timestamp, temperature, humidity
         FROM temperature_humidity
         WHERE hostname=?
-        ORDER BY timestamp DESC LIMIT(?)
+        ORDER BY timestamp DESC LIMIT ?
     """
-    data = db.execute(sql_text, (hostname, str(limit),)).fetchall()
+    data = db.execute(sql_text, (hostname, limit,)).fetchall()
     return data
 def put_data(hostname, timestamp, temperature, humidity):
     """ Insert a reading into the SQLite database """
@@ -40,8 +42,10 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         queries = parse_qs(parsed.query)
         print(queries)
         try:
-            limit = queries['limit'][-1]
-        except KeyError:
+            limit = int(queries['limit'][-1])
+            if limit < 1 or limit > 10000:
+                limit = 50
+        except (KeyError, ValueError, IndexError):
             limit = 50
         print(limit)
         try:
@@ -56,7 +60,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(bytes(json.dumps([tuple(row) for row in data]), 'utf-8'))
-        except:
+        except Exception as e:
             errinfo = traceback.format_exc()
             self.send_response(500)
             self.send_header('Content-type', 'text/plain')

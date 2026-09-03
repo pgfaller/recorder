@@ -12,7 +12,6 @@ import time
 import signal
 import requests
 import socket
-#from prometheus_client import start_http_server, Gauge
 
 
 def create_connection(db_file):
@@ -75,13 +74,15 @@ def send_recording(url, now, temperature, humidity):
         recording['humidity'] = humidity
         r = requests.post(url, json=recording)
         print(r.status_code, r.reason)
-    except Error as e:
-        print(e)
+    except requests.RequestException as e:
+        print(f'Failed to send recording: {e}')
+    except Exception as e:
+        print(f'Unexpected error sending recording: {e}')
 
 
 def signal_handler(sig, frame):
     print('Exiting on signal', sig)
-    conn.close
+    conn.close()
     sys.exit(0)
 
 
@@ -115,12 +116,7 @@ if __name__ == '__main__':
         except KeyError as ke:
             print('No AZ_URL found')
             url = None
-
-#        # Define Prometheus metrics
-#        temperature_gauge = Gauge('environment_temperature', 'Measured temperature');
-#        humidity_gauge = Gauge('environment_humidity', 'Measured humidity');
-#        start_http_server(8000);
-        
+         
         # Periodic readings
         while(True):
             # Try to grab a sensor reading.  Use the read_retry method which will retry up
