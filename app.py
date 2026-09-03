@@ -11,8 +11,16 @@ import json
 import socket
 import io
 import base64
+import os
 
 app = Flask(__name__, static_url_path='')
+
+# If a built recorder-web frontend exists, serve it as the Flask static folder so
+# index.html and assets are served from recorder-web/dist automatically.
+dist_dir = os.path.join(os.path.dirname(__file__), 'recorder-web', 'dist')
+if os.path.exists(dist_dir):
+    app.static_folder = dist_dir
+    app.static_url_path = ''
 
 DATABASE = 'recordings.db'
 
