@@ -46,6 +46,18 @@
       return { times, temps, hums };
     }
 
+    function getAxisLimits(data) {
+      if (!data || data.length === 0) return { min: 0, max: 100 };
+      const min = Math.min(...data);
+      const max = Math.max(...data);
+      const range = max - min || 1;
+      const padding = range * 0.15; // 15% padding above and below
+      return {
+        min: Math.floor((min - padding) * 2) / 2, // Round to nearest 0.5
+        max: Math.ceil((max + padding) * 2) / 2
+      };
+    }
+
     function drawChart() {
       fetch(`/data?limit=${currentRange}`)
         .then(r => r.json())
@@ -55,6 +67,9 @@
           if (!chartInstance) {
             chartInstance = echarts.init(document.getElementById('chart'));
           }
+
+          const tempLimits = getAxisLimits(temps);
+          const humLimits = getAxisLimits(hums);
 
           const option = {
             tooltip: { trigger: 'axis' },
@@ -66,8 +81,8 @@
               splitLine: { show: false }
             },
             yAxis: [
-              { type: 'value', name: 'Temperature (°C)', position: 'left', min: -10, max: 40 },
-              { type: 'value', name: 'Humidity (%)', position: 'right', min: 0, max: 100 }
+              { type: 'value', name: 'Temperature (°C)', position: 'left', min: tempLimits.min, max: tempLimits.max },
+              { type: 'value', name: 'Humidity (%)', position: 'right', min: humLimits.min, max: humLimits.max }
             ],
             series: [
               {
